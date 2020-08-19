@@ -1,0 +1,4 @@
+torch
+torchvision
+fasttext
+scikit-learn
