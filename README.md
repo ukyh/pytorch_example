@@ -1,4 +1,4 @@
-# pytorch_example_nlp
+# pytorch_example
 
 Pytorch example for NLP.
 
