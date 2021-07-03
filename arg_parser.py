@@ -7,7 +7,6 @@ def get_args():
 
     # Data
     parser.add_argument('--data_path', default='rotten_imdb', type=str)
-    parser.add_argument('--emb_path', default='./crawl-300d-2M-subword.bin', type=str)
     parser.add_argument('--min_freq', default=-1, type=int)
     parser.add_argument('--max_data', default=-1, type=int)
 
@@ -26,7 +25,6 @@ def get_args():
     # Model
     parser.add_argument('--init_method', default='default', type=str)
     parser.add_argument('--out_pad', default=0., type=float)
-    parser.add_argument('--fix_emb', default=False, action='store_true')
 
     # Dimension
     parser.add_argument('--dim_tok', default=300, type=int)
@@ -39,7 +37,7 @@ def get_args():
     parser.add_argument('--nlayer_enc', default=1, type=int)
 
     # Optimizer
-    parser.add_argument('--optimizer', default='Adam', type=str)
+    parser.add_argument('--optimizer', default='Adam', type=str, choices=['Adam', 'AMSGrad', 'SGD'])
     parser.add_argument('--lr', default=0.001, type=float)
     parser.add_argument('--l2_decay', default=0., type=float)
 

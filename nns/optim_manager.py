@@ -14,6 +14,6 @@ def get_optim(args, model):
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.l2_decay)
     else:
         raise KeyError("Unsupported optimizer: {}".format(args.optimizer))
-    logger.info("Optimizer: {}".format(args.optimizer))
+    logger.info("Optimizer:\n{}".format(optimizer))
 
     return optimizer

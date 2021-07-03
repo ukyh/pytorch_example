@@ -30,16 +30,16 @@ class BiLSTM(nn.Module):
     def forward(self, x, slen):
         """
         Args:
-            x (n_sent, max_slen, dim): Padded and sorted FloatTensor
-            slen (n_sent): LongTensor whose each element corresponds to a sentence length
+            x (n_sent, max_slen, dim): Padded FloatTensor
+            slen (n_sent): LongTensor of sentence lengths
         
         Returns:
             output (batch, max_slen, dimh * 2): FloatTensor padded with `out_pad`
-            hid_n, cell_n (nlayer * 2, batch, dimh): FloatTensor of hidden or cell states
+            hid_n, cell_n (nlayer * 2, batch, dimh): FloatTensor of hidden and cell states
         """
         # Pack
         total_length = x.size(1)
-        x = pack(x, slen, batch_first=True)             # (sum(slen), dim)
+        x = pack(x, slen, batch_first=True, enforce_sorted=False)   # (sum(slen), dim)
 
         init_hc = self.init_hidden(len(slen))           # ( (nlayer * 2, batch, dimh) * 2 )
         out, (hid_n, cell_n) = self.bilstm(x, init_hc)  # (sum(slen), dimh * 2), ( (nlayer * 2, batch, dimh) * 2 )

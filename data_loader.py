@@ -3,7 +3,6 @@ import torch.utils.data as data
 from torch.nn.utils.rnn import pad_sequence as pad
 
 import os
-import fasttext
 import numpy as np
 from logging import getLogger
 
@@ -14,7 +13,7 @@ logger = getLogger(__name__)
 
 
 class Dataset(data.Dataset):
-    """ Custom data.Dataset compatible with data.DataLoader. 
+    """Custom data.Dataset compatible with data.DataLoader. 
 
     NOTE:
         __getitem__ and __len__ are required.
@@ -25,32 +24,32 @@ class Dataset(data.Dataset):
         self.num_data = len(label)
 
     def __getitem__(self, index):
-        """ Returns a set of items in list.
-            See `data` argument in `collate_fn`.
+        """Returns a set of items in list.
+           See `data` argument in `collate_fn`.
         """
         return self.text[index], self.label[index]
 
     def __len__(self):
-        """ Returns the number of the data. """
+        """Returns the number of the data."""
         return self.num_data
 
 
 def collate_fn(data):
-    """ Creates mini-batch tensors.
+    """Creates mini-batch tensors.
 
     Args:
-        data [() * batch]: List of a tuple (text_i, label_i),
+        data [(2) * batch]: List of tuples (text_i, label_i),
                            made by [dataset[i] for i in indexes]
-        text_i [slen]: List of a sentence
+        text_i [slen]: List of words in a sentence
         label_i [1]: List of a label
 
     Returns:
-        padded_texts (batch, max_slen): LongTensor sorted according to the sentence length
-        lengths (batch): LongTensor sorted according to the sentence length
-        lebels (batch): LongTensor sorted according to the sentence length
+        padded_texts (batch, max_slen): LongTensor
+        lengths (batch): LongTensor
+        lebels (batch): LongTensor
     """
     def _merge_text(texts):
-        """ Merge sentences into a padded tensor.
+        """Merge sentences into a padded tensor.
 
         Args:
             texts ([slen] * batch): Tuple of sentences
@@ -64,9 +63,9 @@ def collate_fn(data):
         for i, text in enumerate(texts):
             end = lengths[i]
             padded_texts[i, :end] = torch.LongTensor(text[:end])        # fill the tensor with the given token ids
-        return padded_texts, lengths
+        return padded_texts, torch.LongTensor(lengths)
 
-    # Reshape items
+    # Relocate items
     #   from [(text_i, label_i), (text_j, label_j), ...]
     #   to (text_i, text_j, ...), (label_i, label_j, ...)
     texts, labels = zip(*data)    # ([slen] * batch), (batch)
@@ -75,19 +74,11 @@ def collate_fn(data):
     padded_texts, lengths = _merge_text(texts)  # (batch, max_slen), (batch)
     labels = torch.LongTensor(labels)           # (batch)
 
-    # Sort by the sentence length to feed in `pack_padded_sequence`.
-    lengths, sort_index = torch.sort(torch.LongTensor(lengths), dim=0, descending=True)
-    padded_texts = padded_texts[sort_index]
-    labels = labels[sort_index]
-
     return padded_texts, lengths, labels
 
 
-
-
 def get_vocab(args):
-    """ Get a vocabulary and embeddings. """
-    # Set or load vocabulary
+    """Set or load a vocab."""
     vocab = Vocab(args.min_freq)
     if args.run_test:
         vocab.load_vocab(args.vocab_path)
@@ -106,17 +97,11 @@ def get_vocab(args):
         if args.save:
             vocab.save_vocab(args.vocab_path)
 
-    # Get pre-trained embeddings of the vocabulary
-    embedder = fasttext.load_model(args.emb_path)
-    embs = [embedder.get_word_vector(tok) for tok in vocab.sorted_vocab()]
-    embs = np.array(embs, dtype=np.float32) # ndarray (vocab, dim_tok)
-    logger.info("Loaded embeddings: {}".format(embs.shape))
-
-    return vocab, embs
+    return vocab
 
 
 def preprocess_data(args, vocab):
-    """ Convert tokens to their indexes and split data. """
+    """Convert tokens to their indexes and split data."""
     # Load data and convert its tokens to indexes
     plot_data = list()
     with open(args.plot_path, encoding="utf-8", errors="ignore") as plot_file:
@@ -137,7 +122,7 @@ def preprocess_data(args, vocab):
     train_n = int(n * 0.8)
     dev_n = int(n * 0.9) - int(n * 0.8)
     test_n = n - int(n * 0.9)
-    assert train_n > 0 and dev_n > 0 and test_n > 0, "max_data is too small"
+    assert train_n > 0 and dev_n > 0 and test_n > 0, "input or max_data is too small"
 
     # Split data
     # NOTE:
@@ -162,8 +147,8 @@ def preprocess_data(args, vocab):
 
 
 def get_data(args):
-    """ Get a vocabulary, embeddings and dataloaders. """
-    vocab, embs = get_vocab(args)
+    """Get a vocab and dataloaders."""
+    vocab = get_vocab(args)
     train_text, dev_text, test_text, train_label, dev_label, test_label \
         = preprocess_data(args, vocab)
     
@@ -173,14 +158,17 @@ def get_data(args):
 
     # Get custom dataloaders that return mini-batches made by `collate_fn`
     train_loader = torch.utils.data.DataLoader(
-        dataset=train_data, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn
+        dataset=train_data, batch_size=args.batch_size,
+        shuffle=True, collate_fn=collate_fn
     )
     dev_loader = torch.utils.data.DataLoader(
-        dataset=dev_data, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn
+        dataset=dev_data, batch_size=args.batch_size,
+        shuffle=False, collate_fn=collate_fn
     )
     test_loader = torch.utils.data.DataLoader(
-        dataset=test_data, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn
+        dataset=test_data, batch_size=args.batch_size,
+        shuffle=False, collate_fn=collate_fn
     )
     logger.info("Processed data")
 
-    return train_loader, dev_loader, test_loader, vocab, embs
+    return train_loader, dev_loader, test_loader, vocab

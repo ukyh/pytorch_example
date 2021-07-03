@@ -9,20 +9,19 @@ logger = getLogger(__name__)
 
 
 def trace(*args):
-    """ Simple logging. """
+    """Simple logger."""
     print(datetime.datetime.now().strftime("%H:%M:%S"), " ".join(map(str, args)))
 
 
 def decorate_logger(args, logger):
-    """ Decorate logger. 
-        Stream for debug and File for experimental logs.
+    """Decorate logger. 
+       Stream for debug and File for experimental logs.
     """
-    logger.setLevel(DEBUG)
+    logger.setLevel(INFO)
     formatter = Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    # sys.stderr.write = logger.error
 
     handler = StreamHandler()
-    handler.setLevel(DEBUG)
+    handler.setLevel(INFO)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -36,7 +35,7 @@ def decorate_logger(args, logger):
 
 
 class Vocab:
-    """ Defines a vocabulary and convert token <-> index.
+    """Defines a vocabulary and convert token <-> index.
 
     Attributes:
         min_freq: Minimum frequency to add in vocab.
@@ -67,7 +66,7 @@ class Vocab:
         self._tokens.extend(token_seq)
 
     def set_vocab(self):
-        """ Set and fix the vocabulary. """
+        """Set and fix a vocabulary."""
         assert self._special_tokens != None and self._tokens != None, "Vocab is already set or loaded"
         for sp_tok in self._special_tokens:
             self.tok2idx_dict[sp_tok] = len(self.tok2idx_dict)
@@ -84,14 +83,14 @@ class Vocab:
         logger.info("Set vocab: {}".format(len(self.tok2idx_dict)))
 
     def save_vocab(self, vocab_path):
-        """ Save the vocabulary. """
+        """Save a vocabulary."""
         assert self._special_tokens == None and self._tokens == None, "Vocab is not set yet"
         with open(vocab_path, "w", encoding="utf-8", errors="ignore") as outfile:
             json.dump(self.tok2idx_dict, outfile, indent=4)
         logger.info("Saved vocab to {}".format(vocab_path))
 
     def load_vocab(self, vocab_path):
-        """ Load a saved vocabulary. """
+        """Load a saved vocabulary."""
         assert self._special_tokens != None and self._tokens != None, "Vocab is already set or loaded"
         with open(vocab_path, encoding="utf-8", errors="ignore") as infile:
             loaded_dict = json.load(infile)
@@ -104,7 +103,7 @@ class Vocab:
         logger.info("Loaded vocab from {}".format(vocab_path))
 
     def sorted_vocab(self):
-        """ Returns a list of tokens sorted according to their indexes. """
+        """Returns a list of tokens sorted according to their indexes."""
         return [tok for tok, _ in sorted(self.tok2idx_dict.items(), key=lambda x:x[1])]
 
     def tok2idx(self, token):
