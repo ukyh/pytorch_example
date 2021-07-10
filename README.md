@@ -3,17 +3,17 @@
 Pytorch example for NLP.
 
 
-## Task
-
-Binary sentence classification: classify a sentence into {0:subjective, 1:objective}.  
-Data is downloaded from: https://www.cs.cornell.edu/people/pabo/movie-review-data/
-
-
 ## Requirements
 
 ```
 pip install -r requirements.txt
 ```
+
+
+## Task
+
+Binary sentence classification: classify a sentence into {0:subjective, 1:objective}.  
+Data is downloaded from: https://www.cs.cornell.edu/people/pabo/movie-review-data/
 
 
 ## Model
