@@ -76,7 +76,7 @@ def dev_loop(args, dev_loader, model, criterion):
     Gold = list()
     model.eval()   # set to evaluation mode
     for batch in dev_loader:
-        # Compute the loss without gradient calculation
+        # Compute forward pass without gradient calculation
         with torch.no_grad():
             preds, labels = model(batch)
             loss = criterion(preds, labels)
@@ -99,7 +99,7 @@ def test_loop(args, test_loader, model):
     Gold = list()
     model.eval()   # set to evaluation mode
     for batch in test_loader:
-        # Compute the loss without gradient calculation
+        # Compute forward pass without gradient calculation
         with torch.no_grad():
             preds, labels = model(batch)
             Pred.extend([idx.item() for idx in preds.argmax(dim=-1)])
@@ -112,10 +112,8 @@ def test_loop(args, test_loader, model):
 def main(args):
     logger.info("Start main")
 
-    # Set GPU
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-    if args.device != "cpu":
-        args.device = "cuda"
+    # GPU/CPU
+    args.device = "cuda" if os.getenv("CUDA_VISIBLE_DEVICES") else "cpu"
 
     # Fix seed
     if args.seed != -1:

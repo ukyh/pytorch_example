@@ -15,9 +15,6 @@ def get_args():
     parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--early_stop', default=-1, type=int)
 
-    # CPU/GPU
-    parser.add_argument('--device', default='cpu', type=str)
-
     # Run
     parser.add_argument('--run_test', default=False, action='store_true')
     parser.add_argument("--log_path", default="", type=str)

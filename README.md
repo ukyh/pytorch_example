@@ -1,11 +1,11 @@
 # pytorch_example
 
-Pytorch example for NLP.
+Example code for [PyTorch Tutorial](https://docs.google.com/presentation/d/1JuVQPAM9JiEmP7iVFcCj6svneoip-_PNHnO0ygGfv0g/edit?usp=sharing).
 
 
 ## Requirements
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -23,16 +23,19 @@ BiLSTM + Attention.
 
 ## Sample commands
 
-```
-# Run on GPU (id=0)
-python -u main.py --device 0
+```bash
+# Run on CPU
+python -u main.py
+
+# Run on GPU (e.g., id=0)
+CUDA_VISIBLE_DEVICES=0 python -u main.py
 
 # Run in the background to keep the process running evan after SSH is disconnected
-nohup python -u main.py --device 0 > sample_log &
+CUDA_VISIBLE_DEVICES=0 nohup python -u main.py > sample.log &
 
-# Run train and save a model
-python -u main.py --device 0 --save --model_path sample_model
+# Train and save a model
+CUDA_VISIBLE_DEVICES=0 python -u main.py --save --model_path sample_model
 
-# Run test on the saved model
-python -u main.py --device 0 --run_test --model_path sample_model
+# Test on the saved model
+CUDA_VISIBLE_DEVICES=0 python -u main.py --run_test --model_path sample_model
 ```

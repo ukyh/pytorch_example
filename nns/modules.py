@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,22 +17,18 @@ class BiLSTM(nn.Module):
         self.nlayer = nlayer
         self.dim_hid = dim_hid
         self.out_pad = out_pad
-        if torch.cuda.device_count() > 0:
-            self.device = "cuda"
-        else:
-            self.device = "cpu"
 
-    def init_hidden(self, batch_size):
+    def init_hidden(self, batch_size, device):
         return (
-            torch.zeros(self.nlayer * 2, batch_size, self.dim_hid).to(self.device),
-            torch.zeros(self.nlayer * 2, batch_size, self.dim_hid).to(self.device)
-        )   # ( (nlayer * 2, n_sent, dimh) * 2 )
+            torch.zeros(self.nlayer * 2, batch_size, self.dim_hid).to(device),
+            torch.zeros(self.nlayer * 2, batch_size, self.dim_hid).to(device)
+        )   # ( (nlayer * 2, batch, dimh) * 2 )
 
     def forward(self, x, slen):
         """
         Args:
-            x (n_sent, max_slen, dim): Padded FloatTensor
-            slen (n_sent): LongTensor of sentence lengths
+            x (batch, max_slen, dim): Padded FloatTensor
+            slen (batch): LongTensor of sentence lengths
         
         Returns:
             output (batch, max_slen, dimh * 2): FloatTensor padded with `out_pad`
@@ -39,10 +36,10 @@ class BiLSTM(nn.Module):
         """
         # Pack
         total_length = x.size(1)
-        x = pack(x, slen, batch_first=True, enforce_sorted=False)   # (sum(slen), dim)
+        px = pack(x, slen, batch_first=True, enforce_sorted=False)  # (sum(slen), dim)
 
-        init_hc = self.init_hidden(len(slen))           # ( (nlayer * 2, batch, dimh) * 2 )
-        out, (hid_n, cell_n) = self.bilstm(x, init_hc)  # (sum(slen), dimh * 2), ( (nlayer * 2, batch, dimh) * 2 )
+        init_hc = self.init_hidden(x.size(0), x.device)    # ( (nlayer * 2, batch, dimh) * 2 )
+        out, (hid_n, cell_n) = self.bilstm(px, init_hc) # (sum(slen), dimh * 2), ( (nlayer * 2, batch, dimh) * 2 )
 
         # Unpack
         out, _ = unpack(
